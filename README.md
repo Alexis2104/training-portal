@@ -8,24 +8,29 @@ Employees log in with their company email, complete assigned training modules (v
 
 ## Features
 
-- **Role-based module assignment** — modules are assigned per role, not per person
-- **Embedded YouTube videos** — unlisted videos supported
-- **Step-by-step guides** — structured process steps within each module
-- **Confirmation quiz** — 70 % pass threshold; results recorded per user
-- **Admin dashboard** — completion stats by department, role, and individual
-- **Lightweight** — single Node.js process + SQLite; no external services required
+- **Role-based module assignment** — modules are assigned to roles (not individuals); each assignment is independently marked as *required* or *optional*
+- **Embedded YouTube video lessons** — paste any YouTube URL (unlisted videos supported); the player is embedded automatically
+- **Step-by-step process documentation** — each module includes an ordered list of steps displayed alongside the video
+- **Per-module quiz with 70 % pass threshold** — multiple-choice questions configurable per module; a score ≥ 70 % marks the module as complete and records the result
+- **Admin dashboard with two-level role visibility** — progress is grouped by department, then by *management level* and *operative level* roles, with individual completion bars
+- **Three-state progress tracking** — every user has a computed status: **Up to date** (all assigned modules passed), **Pending** (some in progress), or **Behind** (none started)
+- **Lightweight and self-contained** — single Node.js process + SQLite file; no message broker, cache, or external database required
 
 ## Screenshots
 
-<!-- TODO: add screenshots -->
+![Login](docs/screenshots/login.png)
+![Dashboard](docs/screenshots/dashboard.png)
+![Module viewer](docs/screenshots/module.png)
+![Admin panel](docs/screenshots/admin.png)
 
 ## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Runtime | Node.js 18 + |
+| Runtime | Node.js 18 + (built-in `node:sqlite`) |
 | Framework | Express 4 |
-| Database | SQLite (via Node.js built-in `node:sqlite`) |
+| Database | SQLite |
+| Frontend | Vanilla JS — no build step, no framework |
 | Auth | express-session + bcryptjs |
 | Process manager | PM2 (optional) |
 | Reverse proxy | Nginx (optional) |
@@ -103,19 +108,23 @@ Edit `database/seed.js` to match your company:
 
 ## Deployment with PM2 + Nginx
 
+### 1. Process manager (PM2)
+
 ```bash
-# Install PM2
+# Install PM2 globally
 npm install -g pm2
 
-# Start the app
+# Start the app — pass the Node flag required by node:sqlite
 pm2 start server.js --name training-portal --node-args="--experimental-sqlite"
 
-# Persist across reboots
+# Persist across server reboots
 pm2 startup
 pm2 save
 ```
 
-Sample Nginx config:
+### 2. Reverse proxy (Nginx)
+
+Create a new Nginx site config (e.g. `/etc/nginx/sites-available/training-portal`):
 
 ```nginx
 server {
@@ -123,21 +132,32 @@ server {
     server_name training.your-domain.example;
 
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass         http://localhost:3000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection 'upgrade';
+        proxy_set_header   Host $host;
         proxy_cache_bypass $http_upgrade;
     }
 }
 ```
 
-Enable HTTPS with Certbot:
+Enable the site and reload Nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/training-portal /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### 3. HTTPS with Certbot
 
 ```bash
 sudo certbot --nginx -d training.your-domain.example
 ```
+
+### CI / CD
+
+For an automated Jenkins + Cypress pipeline that covers build, test, and deploy, see [jenkins-cypress-pipeline](https://github.com/Alexis2104/jenkins-cypress-pipeline).
 
 ## License
 

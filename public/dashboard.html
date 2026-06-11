@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Portal · My Modules</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .progress-banner { background: var(--ox-accent); border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; overflow: hidden; position: relative; }
+  .progress-banner::before { content:''; position:absolute; right:-30px; top:-30px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.04); }
+  .pb-greeting { font-size: 13px; color: rgba(255,255,255,.55); }
+  .pb-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: #fff; margin-top: 2px; }
+  .pb-sub { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 4px; }
+  .pb-right { display: flex; align-items: center; gap: 20px; z-index: 1; }
+  .pb-count { text-align: center; }
+  .pb-count-val { font-size: 26px; font-weight: 600; color: #fff; }
+  .pb-count-lbl { font-size: 10px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .08em; }
+  .pb-bar-wrap { width: 130px; }
+  .pb-bar-lbl { font-size: 10px; color: rgba(255,255,255,.45); margin-bottom: 6px; }
+  .pb-bar-track { height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; }
+  .pb-bar-fill { height: 4px; background: var(--ox-gold); border-radius: 2px; transition: width .5s; }
+
+  .dept-block { margin-bottom: 28px; }
+  .dept-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .dept-count-lbl { font-size: 11px; color: var(--ox-muted); }
+  .modules-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .mod-card { background: #fff; border: 1px solid var(--ox-border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: all .18s; position: relative; overflow: hidden; text-decoration: none; display: block; color: inherit; }
+  .mod-card:hover { border-color: var(--ox); transform: translateY(-1px); }
+  .mod-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+  .mod-card.log::before { background: var(--ox-red); }
+  .mod-card.adm::before { background: var(--ox-accent); }
+  .mod-card.con::before { background: var(--ox-teal); }
+  .mod-card.ven::before { background: var(--ox-amber); }
+  .mod-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+  .mod-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .mod-icon.log { background: var(--ox-log-bg); }
+  .mod-icon.adm { background: var(--ox-adm-bg); }
+  .mod-icon.con { background: var(--ox-con-bg); }
+  .mod-icon.ven { background: var(--ox-ven-bg); }
+  .mod-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .mod-desc { font-size: 11px; color: var(--ox-muted); line-height: 1.5; }
+  .mod-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ox-border); }
+  .mod-time { font-size: 10px; color: var(--ox-muted); }
+  .mod-bar { flex: 1; margin: 0 8px; height: 3px; background: var(--ox-border); border-radius: 2px; }
+  .mod-bar-fill { height: 3px; border-radius: 2px; }
+  .mod-pct { font-size: 10px; color: var(--ox-muted); min-width: 28px; text-align: right; }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--ox-muted); }
+  .empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--ox); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Training<span>Portal</span></div>
+      <div class="brand-sub">Training Platform</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Navigation</div>
+      <a href="/dashboard.html" class="nav-item active"><span class="nav-dot" style="background:var(--ox-gold);"></span>All modules</a>
+      <a href="/dashboard.html?filter=pending" class="nav-item"><span>⏳</span>Pending</a>
+      <a href="/dashboard.html?filter=completed" class="nav-item"><span>✅</span>Completed</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar" id="sidebarAvatar">--</div>
+        <div>
+          <div class="user-name" id="sidebarName">Loading...</div>
+          <div class="user-role-label" id="sidebarRole"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title">My modules</div>
+        <div class="breadcrumb" id="topBreadcrumb">Training Portal</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="progress-banner" id="progressBanner" style="display:none;">
+        <div>
+          <div class="pb-greeting" id="pbGreeting">Good morning</div>
+          <div class="pb-title" id="pbTitle">Loading...</div>
+          <div class="pb-sub" id="pbSub"></div>
+        </div>
+        <div class="pb-right">
+          <div class="pb-bar-wrap">
+            <div class="pb-bar-lbl">Overall progress</div>
+            <div class="pb-bar-track"><div class="pb-bar-fill" id="pbBarFill" style="width:0%"></div></div>
+          </div>
+          <div class="pb-count">
+            <div class="pb-count-val" id="pbCount">0/0</div>
+            <div class="pb-count-lbl">completed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row" id="statsRow" style="display:none;"></div>
+
+      <div class="sec-header">
+        <div class="sec-title">By department</div>
+        <div style="display:flex;gap:4px;" id="filterTabs">
+          <button class="btn btn-secondary btn-sm active-tab" onclick="setFilter('all', this)" style="border-radius:20px;font-size:11px;padding:4px 12px;">All</button>
+          <button class="btn btn-secondary btn-sm" onclick="setFilter('pending', this)" style="border-radius:20px;font-size:11px;padding:4px 12px;">Pending</button>
+          <button class="btn btn-secondary btn-sm" onclick="setFilter('completed', this)" style="border-radius:20px;font-size:11px;padding:4px 12px;">Completed</button>
+        </div>
+      </div>
+
+      <div id="modulesContainer">
+        <div style="text-align:center;padding:48px;color:var(--ox-muted);">Loading modules...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allDepts = [];
+let currentFilter = 'all';
+let user = null;
+
+const statusLabel = { not_started: 'Not started', in_progress: 'In progress', completed: 'Completed' };
+const statusClass = { not_started: 'not_started', in_progress: 'in_progress', completed: 'completed' };
+const modIcons = { log: '📦', adm: '📊', con: '🧾', ven: '🛒' };
+
+async function init() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('filter')) currentFilter = urlParams.get('filter');
+
+  const [meRes, deptsRes] = await Promise.all([
+    fetch('/api/auth/me'), fetch('/api/modules/by-department')
+  ]);
+  user = await meRes.json();
+  allDepts = await deptsRes.json();
+
+  if (!user || user.error) { window.location.href = '/login.html'; return; }
+
+  // Sidebar
+  document.getElementById('sidebarAvatar').textContent = user.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+  document.getElementById('sidebarName').textContent = user.name;
+  document.getElementById('sidebarRole').textContent = user.role_name || '';
+  document.getElementById('topBreadcrumb').textContent = `Training Portal · ${user.dept_name || 'Dashboard'}`;
+
+  // Stats
+  const allModules = allDepts.flatMap(d => d.modules);
+  const total = allModules.length;
+  const completed = allModules.filter(m => m.status === 'completed').length;
+  const pending = allModules.filter(m => m.status !== 'completed').length;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  // Banner
+  const banner = document.getElementById('progressBanner');
+  banner.style.display = 'flex';
+  const hour = new Date().getHours();
+  document.getElementById('pbGreeting').textContent = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
+  document.getElementById('pbTitle').textContent = pending > 0 ? `${user.name.split(' ')[0]}, you have ${pending} pending module${pending !== 1 ? 's' : ''}` : `All done, ${user.name.split(' ')[0]}!`;
+  document.getElementById('pbSub').textContent = pct === 100 ? 'You completed all your assigned modules.' : 'Complete your training to stay up to date.';
+  document.getElementById('pbBarFill').style.width = pct + '%';
+  document.getElementById('pbCount').textContent = `${completed}/${total}`;
+
+  // Stats row
+  const statsRow = document.getElementById('statsRow');
+  statsRow.style.display = 'grid';
+  statsRow.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  statsRow.innerHTML = `
+    <div class="stat-card"><div class="stat-label">My modules</div><div class="stat-val">${total}</div><div class="stat-meta">assigned to my role</div></div>
+    <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-val text-green">${completed}</div><div class="stat-meta">passed with quiz</div></div>
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-val ${pending > 0 ? 'text-red' : 'text-green'}">${pending}</div><div class="stat-meta">${pending > 0 ? 'to complete' : 'All done!'}</div></div>
+  `;
+
+  renderModules();
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.active-tab').forEach(b => b.classList.remove('active-tab'));
+  btn.classList.add('active-tab');
+  renderModules();
+}
+
+function renderModules() {
+  const container = document.getElementById('modulesContainer');
+  let html = '';
+
+  allDepts.forEach(dept => {
+    let mods = dept.modules;
+    if (currentFilter === 'pending') mods = mods.filter(m => m.status !== 'completed');
+    if (currentFilter === 'completed') mods = mods.filter(m => m.status === 'completed');
+    if (mods.length === 0) return;
+
+    html += `<div class="dept-block">
+      <div class="dept-header">
+        <span class="dept-tag ${dept.class}">${dept.name}</span>
+        <span class="dept-count-lbl">${mods.length} module${mods.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="modules-grid">`;
+
+    mods.forEach(m => {
+      const pct = m.status === 'completed' ? 100 : m.status === 'in_progress' ? 50 : 0;
+      const fillClass = pct === 100 ? 'done' : pct > 0 ? 'mid' : 'low';
+      const sl = statusLabel[m.status] || m.status;
+      const sc = statusClass[m.status] || 'not_started';
+      const isNew = (Date.now() - new Date(m.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
+      html += `<a href="/module.html?id=${m.id}" class="mod-card ${dept.class}">
+        <div class="mod-top">
+          <div class="mod-icon ${dept.class}">${modIcons[dept.class] || '📄'}</div>
+          <span class="status-pill ${isNew && m.status === 'not_started' ? 'new' : sc}">${isNew && m.status === 'not_started' ? 'New' : sl}</span>
+        </div>
+        <div class="mod-name">${m.title}</div>
+        <div class="mod-desc">${m.description || ''}</div>
+        <div class="mod-footer">
+          <span class="mod-time">⏱ ${m.duration_minutes} min</span>
+          <div class="mod-bar"><div class="mod-bar-fill ${fillClass}" style="width:${pct}%"></div></div>
+          <span class="mod-pct ${pct === 100 ? 'text-green' : ''}">${pct}%</span>
+        </div>
+      </a>`;
+    });
+
+    html += '</div></div>';
+  });
+
+  if (!html) {
+    html = `<div class="empty-state">
+      <h3>${currentFilter === 'completed' ? '🏅 No completed modules' : '✅ All done!'}</h3>
+      <p>${currentFilter === 'completed' ? 'You haven\'t completed any modules yet.' : 'No pending modules.'}</p>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+}
+
+init();
+</script>
+</body>
+</html>

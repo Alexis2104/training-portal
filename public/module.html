@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Portal · Module</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+  .mod-header { background: #fff; border-bottom: 1px solid var(--ox-border); padding: 20px 28px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ox-muted); text-decoration: none; margin-bottom: 12px; }
+  .back-link:hover { color: var(--ox); }
+  .mod-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .mod-title { font-family: 'DM Serif Display', serif; font-size: 26px; }
+  .mod-meta { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  .mod-meta span { font-size: 12px; color: var(--ox-muted); }
+
+  .mod-body { max-width: 800px; margin: 0 auto; padding: 32px 28px; }
+
+  /* Video */
+  .video-section { margin-bottom: 32px; }
+  .video-wrap { background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
+  .video-wrap iframe { width: 100%; height: 100%; border: none; }
+  .video-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: rgba(255,255,255,.5); height: 100%; }
+  .video-placeholder .play-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+
+  /* Steps */
+  .steps-section { margin-bottom: 32px; }
+  .section-title-sm { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 16px; }
+  .step-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--ox-border); }
+  .step-item:last-child { border-bottom: none; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--ox-accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+  .step-text { font-size: 14px; line-height: 1.6; padding-top: 3px; }
+
+  /* Alert blocks */
+  .info-block { border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+  .info-block.warning { background: #FBF0E0; border: 1px solid #E8C97A; color: #6B4A0E; }
+  .info-block strong { font-weight: 500; }
+
+  /* Quiz */
+  .quiz-section { background: #fff; border: 1px solid var(--ox-border); border-radius: 14px; padding: 24px; margin-bottom: 32px; }
+  .quiz-header { margin-bottom: 20px; }
+  .quiz-q { margin-bottom: 24px; }
+  .quiz-q-text { font-size: 14px; font-weight: 500; margin-bottom: 12px; line-height: 1.5; }
+  .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--ox-border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all .15s; font-size: 13px; line-height: 1.4; }
+  .quiz-option:hover { border-color: var(--ox-accent); background: var(--ox-adm-bg); }
+  .quiz-option.selected { border-color: var(--ox-accent); background: var(--ox-adm-bg); }
+  .quiz-option.correct { border-color: var(--ox-teal); background: var(--ox-con-bg); }
+  .quiz-option.wrong { border-color: var(--ox-red); background: var(--ox-log-bg); }
+  .quiz-radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--ox-border); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; }
+  .quiz-option.selected .quiz-radio, .quiz-option.correct .quiz-radio { background: var(--ox-accent); border-color: var(--ox-accent); }
+  .quiz-option.correct .quiz-radio { background: var(--ox-teal); border-color: var(--ox-teal); }
+  .quiz-option.wrong .quiz-radio { background: var(--ox-red); border-color: var(--ox-red); }
+  .quiz-radio::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; display: none; }
+  .quiz-option.selected .quiz-radio::after, .quiz-option.correct .quiz-radio::after, .quiz-option.wrong .quiz-radio::after { display: block; }
+
+  .quiz-result { text-align: center; padding: 24px; border-radius: 12px; margin-top: 16px; }
+  .quiz-result.passed { background: var(--ox-con-bg); }
+  .quiz-result.failed { background: var(--ox-log-bg); }
+  .quiz-result-score { font-size: 48px; font-weight: 600; font-family: 'DM Serif Display', serif; }
+  .quiz-result.passed .quiz-result-score { color: var(--ox-teal); }
+  .quiz-result.failed .quiz-result-score { color: var(--ox-red); }
+  .quiz-result-msg { font-size: 14px; margin-top: 8px; }
+
+  .completed-banner { background: var(--ox-con-bg); border: 1px solid #9FD4C0; border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .completed-icon { font-size: 32px; }
+  .completed-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--ox-teal); }
+  .completed-sub { font-size: 12px; color: #2E8A6A; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div style="text-align:center;padding:80px;color:var(--ox-muted);">Loading module...</div>
+</div>
+
+<script>
+const moduleId = new URLSearchParams(window.location.search).get('id');
+if (!moduleId) window.location.href = '/dashboard.html';
+
+let module = null;
+let answers = {};
+let submitted = false;
+
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\n?#]+)/);
+  return m ? m[1] : null;
+}
+
+function renderPage() {
+  const ytId = getYouTubeId(module.video_url);
+  const isCompleted = module.status === 'completed';
+
+  document.title = `Training Portal · ${module.title}`;
+
+  document.getElementById('app').innerHTML = `
+  <div class="mod-header">
+    <a href="/dashboard.html" class="back-link">← Back to my modules</a>
+    <div class="mod-title-row">
+      <div>
+        <div class="mod-title">${module.title}</div>
+        <div class="mod-meta">
+          <span class="dept-tag ${module.dept_class}">${module.dept_name}</span>
+          <span>⏱ ${module.duration_minutes} min</span>
+          <span class="status-pill ${module.status}">${{not_started:'Not started',in_progress:'In progress',completed:'Completed'}[module.status]}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mod-body">
+    ${isCompleted ? `
+    <div class="completed-banner">
+      <div class="completed-icon">🏅</div>
+      <div>
+        <div class="completed-title">Module completed</div>
+        <div class="completed-sub">Score: ${module.quiz_score}% · ${new Date(module.completed_at).toLocaleDateString('en', {day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>
+    </div>` : ''}
+
+    <div class="video-section">
+      <div class="section-title-sm">📹 Module video</div>
+      <div class="video-wrap">
+        ${ytId
+          ? `<iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe>`
+          : `<div class="video-placeholder">
+              <div class="play-icon">▶</div>
+              <div style="font-size:13px;">Video not yet published</div>
+             </div>`}
+      </div>
+    </div>
+
+    ${module.steps && module.steps.length > 0 ? `
+    <div class="steps-section">
+      <div class="section-title-sm">📋 Process steps</div>
+      ${module.steps.map((step, i) => `
+        <div class="step-item">
+          <div class="step-num">${i + 1}</div>
+          <div class="step-text">${step}</div>
+        </div>
+      `).join('')}
+    </div>` : ''}
+
+    ${module.description ? `
+    <div class="info-block warning" style="margin-bottom:24px;">
+      <strong>📌 Remember:</strong> ${module.description}
+    </div>` : ''}
+
+    ${module.questions && module.questions.length > 0 ? `
+    <div class="quiz-section" id="quizSection">
+      <div class="quiz-header">
+        <div class="section-title-sm">✏️ Confirmation quiz</div>
+        <p class="text-muted">Answer at least 70% correctly to complete the module.</p>
+      </div>
+      <div id="quizQuestions">
+        ${module.questions.map((q, qi) => `
+          <div class="quiz-q" id="q-${q.id}">
+            <div class="quiz-q-text">${qi + 1}. ${q.question}</div>
+            ${q.options.map((opt, oi) => `
+              <div class="quiz-option" id="opt-${q.id}-${oi}" onclick="selectOption(${q.id}, ${oi}, this)">
+                <div class="quiz-radio"></div>
+                <span>${opt}</span>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+      <div id="quizResult" style="display:none;"></div>
+      <div style="margin-top:16px;">
+        <button class="btn btn-primary" id="submitBtn" onclick="submitQuiz()" disabled>Submit answers</button>
+        ${isCompleted ? '<button class="btn btn-secondary" style="margin-left:8px;" onclick="location.href=\'/dashboard.html\'">Back to dashboard</button>' : ''}
+      </div>
+    </div>` : `
+    <div style="text-align:center;padding:32px;">
+      <button class="btn btn-primary" onclick="markComplete()">Mark as completed</button>
+    </div>`}
+  </div>`;
+
+  // Mark as in progress
+  if (module.status === 'not_started') {
+    fetch(`/api/modules/${moduleId}/progress`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'in_progress' }) });
+  }
+
+  // If already completed, show result
+  if (isCompleted && module.quiz_score !== null) {
+    showResult(module.quiz_score, true, true);
+  }
+}
+
+function selectOption(qId, optIdx, el) {
+  if (submitted) return;
+  document.querySelectorAll(`[id^="opt-${qId}-"]`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[qId] = optIdx;
+
+  const allAnswered = module.questions.every(q => answers[q.id] !== undefined);
+  document.getElementById('submitBtn').disabled = !allAnswered;
+}
+
+async function submitQuiz() {
+  submitted = true;
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'Submitting...';
+
+  const res = await fetch(`/api/modules/${moduleId}/quiz`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers })
+  });
+  const data = await res.json();
+
+  data.results.forEach(r => {
+    const selectedEl = document.getElementById(`opt-${r.questionId}-${answers[r.questionId]}`);
+    const correctEl = document.getElementById(`opt-${r.questionId}-${r.correctAnswer}`);
+    if (selectedEl) selectedEl.classList.add(r.isCorrect ? 'correct' : 'wrong');
+    if (!r.isCorrect && correctEl) correctEl.classList.add('correct');
+  });
+
+  showResult(data.score, data.passed, false);
+}
+
+function showResult(score, passed, alreadyDone) {
+  const el = document.getElementById('quizResult');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="quiz-result ${passed ? 'passed' : 'failed'}">
+      <div class="quiz-result-score">${score}%</div>
+      <div class="quiz-result-msg">
+        ${passed
+          ? (alreadyDone ? '✅ Module completed' : '🎉 Passed! Module completed successfully.')
+          : '❌ You did not reach 70%. Review the content and try again.'}
+      </div>
+      ${passed ? '<a href="/dashboard.html" class="btn btn-secondary" style="margin-top:12px;display:inline-block;">Back to my modules</a>' : ''}
+      ${!passed ? '<button class="btn btn-secondary" style="margin-top:12px;" onclick="location.reload()">Try again</button>' : ''}
+    </div>`;
+}
+
+async function markComplete() {
+  await fetch(`/api/modules/${moduleId}/progress`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'completed' })
+  });
+  window.location.href = '/dashboard.html';
+}
+
+async function init() {
+  const res = await fetch(`/api/modules/${moduleId}`);
+  if (!res.ok) { window.location.href = '/dashboard.html'; return; }
+  module = await res.json();
+  renderPage();
+}
+
+init();
+</script>
+</body>
+</html>

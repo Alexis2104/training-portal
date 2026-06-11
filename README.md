@@ -18,10 +18,10 @@ Employees log in with their company email, complete assigned training modules (v
 
 ## Screenshots
 
-![Login](docs/screenshots/login.png)
-![Dashboard](docs/screenshots/dashboard.png)
-![Module viewer](docs/screenshots/module.png)
 ![Admin panel](docs/screenshots/admin.png)
+![Employee dashboard](docs/screenshots/dashboard.png)
+![Module viewer](docs/screenshots/module.png)
+![Module editor](docs/screenshots/module-editor.png)
 
 ## Tech stack
 

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Portal · Admin</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+  .stats-row { grid-template-columns: repeat(4, 1fr); }
+  /* Dept blocks */
+  .dept-block { background: #fff; border: 1px solid var(--ox-border); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+  .dept-head { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .dept-head-left { display: flex; align-items: center; gap: 12px; }
+  .dept-head-right { display: flex; align-items: center; gap: 16px; }
+  .dept-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .dept-bar { width: 100px; height: 4px; background: var(--ox-border); border-radius: 2px; }
+  .dept-bar-fill { height: 4px; border-radius: 2px; transition: width .4s; }
+  .dept-meta { font-size: 12px; color: var(--ox-muted); }
+  /* Roles table */
+  .roles-wrap { border-top: 1px solid var(--ox-border); padding: 0 18px 14px; }
+  .role-section { margin-top: 14px; }
+  .role-label-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .role-label-text { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--ox-muted); font-weight: 500; }
+  .role-badge { font-size: 9px; padding: 2px 8px; border-radius: 20px; background: var(--ox-tag-bg); color: var(--ox-muted); }
+  .person-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: var(--ox-bg); border-radius: 8px; margin-bottom: 6px; }
+  .person-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+  .person-avatar.log { background: var(--ox-log-bg); color: var(--ox-log-text); }
+  .person-avatar.adm { background: var(--ox-adm-bg); color: var(--ox-adm-text); }
+  .person-avatar.con { background: var(--ox-con-bg); color: var(--ox-con-text); }
+  .person-avatar.ven { background: var(--ox-ven-bg); color: var(--ox-ven-text); }
+  .person-name { font-size: 13px; font-weight: 500; }
+  .person-email { font-size: 11px; color: var(--ox-muted); }
+  .person-progress { display: flex; align-items: center; gap: 6px; width: 130px; }
+  .person-bar { flex: 1; height: 3px; background: var(--ox-border); border-radius: 2px; }
+  .person-bar-fill { height: 3px; border-radius: 2px; }
+  .person-bar-fill.done { background: var(--ox-teal); }
+  .person-bar-fill.mid { background: var(--ox-gold); }
+  .person-bar-fill.low { background: var(--ox-red); }
+  .person-pct { font-size: 10px; color: var(--ox-muted); min-width: 28px; text-align: right; }
+  /* Modules table */
+  .modules-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .modules-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--ox-muted); padding: 8px 12px; border-bottom: 1px solid var(--ox-border); font-weight: 500; }
+  .modules-table td { padding: 12px 12px; border-bottom: 1px solid var(--ox-border); vertical-align: middle; }
+  .modules-table tr:last-child td { border-bottom: none; }
+  .modules-table tr:hover td { background: var(--ox-bg); }
+  .mod-actions { display: flex; gap: 6px; }
+  /* Add user modal content */
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Training<span>Portal</span></div>
+      <div class="brand-sub">Training Platform</div>
+      <div class="admin-badge">✦ Administrator</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Admin panel</div>
+      <a href="#" class="nav-item active" onclick="showTab('overview')">📊 Overview</a>
+      <a href="#" class="nav-item" onclick="showTab('modules')">📚 Modules</a>
+      <a href="/admin-module.html" class="nav-item">➕ New module</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">System</div>
+      <a href="#" class="nav-item" onclick="showAddUserModal()">👤 Add user</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar" id="sidebarAvatar">--</div>
+        <div>
+          <div class="user-name" id="sidebarName">Loading...</div>
+          <div class="user-role-label">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Admin panel</div>
+        <div class="breadcrumb">Training Portal · Admin</div>
+      </div>
+      <div class="topbar-right">
+        <a href="/admin-module.html" class="btn btn-primary">+ New module</a>
+        <button class="btn btn-secondary btn-sm" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+
+    <div class="tabs-bar">
+      <div class="tab active" id="tab-overview" onclick="showTab('overview')">Overview</div>
+      <div class="tab" id="tab-modules" onclick="showTab('modules')">Modules</div>
+    </div>
+
+    <div class="content">
+      <!-- OVERVIEW -->
+      <div id="view-overview">
+        <div class="stats-row" id="statsRow" style="margin-bottom:24px;"></div>
+        <div id="alertArea"></div>
+        <div class="sec-header">
+          <div class="sec-title">Progress by department and role</div>
+        </div>
+        <div id="usersContainer"><div style="text-align:center;padding:48px;color:var(--ox-muted);">Loading...</div></div>
+      </div>
+
+      <!-- MODULES -->
+      <div id="view-modules" style="display:none;">
+        <div class="sec-header">
+          <div class="sec-title">Published modules</div>
+          <a href="/admin-module.html" class="btn btn-primary btn-sm">+ New module</a>
+        </div>
+        <div class="card" style="overflow:hidden;">
+          <table class="modules-table" id="modulesTable">
+            <thead><tr>
+              <th>Module</th><th>Department</th><th>Duration</th><th>Assigned roles</th><th>Completions</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="modulesBody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ox-muted);">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add user modal -->
+<div id="addUserModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Add user</div>
+    <div class="modal-grid">
+      <div class="form-group">
+        <label class="form-label">Full name</label>
+        <input type="text" id="newName" class="form-input" placeholder="Jane Smith">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="newEmail" class="form-input" placeholder="jane@acme-corp.example">
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="form-group">
+        <label class="form-label">Initial password</label>
+        <input type="text" id="newPassword" class="form-input" placeholder="ChangeMe123!">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select id="newRole" class="form-input form-select"></select>
+      </div>
+    </div>
+    <div id="addUserError" style="display:none;" class="alert alert-warning"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddUserModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addUser()">Add user</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let departments = [];
+
+function showTab(tab) {
+  ['overview', 'modules'].forEach(t => {
+    document.getElementById(`view-${t}`).style.display = t === tab ? '' : 'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+  });
+  if (tab === 'modules') loadModules();
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function init() {
+  // Load current admin info for sidebar
+  const me = await fetch('/api/auth/me').then(r => r.json());
+  if (me && !me.error) {
+    document.getElementById('sidebarAvatar').textContent = me.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+    document.getElementById('sidebarName').textContent = me.name;
+  }
+
+  // Stats
+  const stats = await fetch('/api/admin/stats').then(r => r.json());
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Users</div><div class="stat-val">${stats.totalUsers}</div><div class="stat-meta">across ${stats.totalUsers > 0 ? 4 : 0} departments</div></div>
+    <div class="stat-card"><div class="stat-label">Up to date</div><div class="stat-val text-green">${stats.upToDate}</div><div class="stat-meta">completed everything</div></div>
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-val ${stats.withPending > 0 ? 'text-amber' : 'text-green'}">${stats.withPending}</div><div class="stat-meta">modules to complete</div></div>
+    <div class="stat-card"><div class="stat-label">Active modules</div><div class="stat-val">${stats.totalModules}</div><div class="stat-meta">${stats.newThisMonth} new this month</div></div>
+  `;
+
+  if (stats.withPending > 0) {
+    document.getElementById('alertArea').innerHTML = `
+      <div class="alert alert-warning" style="margin-bottom:20px;">
+        ⚠️ <strong>${stats.withPending} user${stats.withPending !== 1 ? 's' : ''}</strong> ha${stats.withPending === 1 ? 's' : 've'} pending modules.
+      </div>`;
+  }
+
+  // Users
+  const depts = await fetch('/api/admin/users').then(r => r.json());
+  departments = depts;
+  renderUsers(depts);
+
+  // Load roles for add user modal
+  const deptsData = await fetch('/api/admin/departments').then(r => r.json());
+  const sel = document.getElementById('newRole');
+  deptsData.forEach(d => {
+    d.roles.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = `${r.name} (${d.name})`;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function renderUsers(depts) {
+  let html = '';
+  depts.forEach(dept => {
+    const allUsers = dept.roles.flatMap(r => r.users);
+    if (allUsers.length === 0) return;
+    const avgPct = allUsers.length > 0 ? Math.round(allUsers.reduce((s, u) => s + u.pct, 0) / allUsers.length) : 0;
+
+    html += `<div class="dept-block">
+      <div class="dept-head">
+        <div class="dept-head-left">
+          <span class="dept-tag ${dept.class}">${dept.name}</span>
+          <span class="dept-meta">${allUsers.length} person${allUsers.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="dept-head-right">
+          <div class="dept-bar-wrap">
+            <div class="dept-bar"><div class="dept-bar-fill ${dept.class}" style="width:${avgPct}%"></div></div>
+            <span style="font-size:11px;font-weight:500;">${avgPct}%</span>
+          </div>
+        </div>
+      </div>
+      <div class="roles-wrap">`;
+
+    dept.roles.forEach(role => {
+      if (role.users.length === 0) return;
+      const levelLabel = role.level === 1 ? 'Management level' : 'Operative level';
+      html += `<div class="role-section">
+        <div class="role-label-row">
+          <span class="role-label-text">${role.name}</span>
+          <span class="role-badge">${levelLabel} · ${role.users.length} person${role.users.length !== 1 ? 's' : ''}</span>
+        </div>`;
+
+      role.users.forEach(u => {
+        const initials = u.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+        const barClass = u.pct === 100 ? 'done' : u.pct > 0 ? 'mid' : 'low';
+        html += `<div class="person-row">
+          <div class="person-avatar ${dept.class}">${initials}</div>
+          <div style="flex:1;">
+            <div class="person-name">${u.name}</div>
+            <div class="person-email">${u.email}</div>
+          </div>
+          <div style="font-size:11px;color:var(--ox-muted);margin-right:8px;">${u.completed_modules}/${u.total_modules} modules</div>
+          <div class="person-progress">
+            <div class="person-bar"><div class="person-bar-fill ${barClass}" style="width:${u.pct}%"></div></div>
+            <span class="person-pct ${u.pct === 100 ? 'text-green' : ''}">${u.pct}%</span>
+          </div>
+          <span class="status-pill ${u.statusClass}">${u.statusLabel}</span>
+        </div>`;
+      });
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  document.getElementById('usersContainer').innerHTML = html || '<div style="text-align:center;padding:48px;color:var(--ox-muted);">No users registered</div>';
+}
+
+async function loadModules() {
+  const modules = await fetch('/api/admin/modules').then(r => r.json());
+  const tbody = document.getElementById('modulesBody');
+
+  if (modules.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ox-muted);">No published modules</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = modules.map(m => `
+    <tr>
+      <td><div style="font-weight:500;">${m.title}</div><div class="text-muted mt-4">${m.description ? m.description.substring(0, 60) + '...' : ''}</div></td>
+      <td><span class="dept-tag ${m.dept_class}">${m.dept_name}</span></td>
+      <td>${m.duration_minutes} min</td>
+      <td>${m.assigned_roles} role${m.assigned_roles !== 1 ? 's' : ''}</td>
+      <td><span class="${m.completions > 0 ? 'text-green' : 'text-muted'}">${m.completions} completion${m.completions !== 1 ? 's' : ''}</span></td>
+      <td>
+        <div class="mod-actions">
+          <a href="/admin-module.html?id=${m.id}" class="btn btn-secondary btn-sm">Edit</a>
+          <button class="btn btn-danger btn-sm" onclick="deleteModule(${m.id}, '${m.title.replace(/'/g, "\\'")}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function deleteModule(id, title) {
+  if (!confirm(`Delete module "${title}"? This action cannot be undone.`)) return;
+  const res = await fetch(`/api/admin/modules/${id}`, { method: 'DELETE' });
+  if (res.ok) { showToast('Module deleted', 'success'); loadModules(); }
+  else showToast('Error deleting module', 'error');
+}
+
+function showAddUserModal() { document.getElementById('addUserModal').classList.remove('hidden'); }
+function closeAddUserModal() { document.getElementById('addUserModal').classList.add('hidden'); }
+
+async function addUser() {
+  const name = document.getElementById('newName').value.trim();
+  const email = document.getElementById('newEmail').value.trim();
+  const password = document.getElementById('newPassword').value.trim();
+  const role_id = document.getElementById('newRole').value;
+  const errEl = document.getElementById('addUserError');
+
+  if (!name || !email || !password) { errEl.textContent = 'Please fill in all fields'; errEl.style.display = 'flex'; return; }
+
+  const res = await fetch('/api/admin/users', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password, role_id })
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    closeAddUserModal();
+    showToast(`${name} added successfully`, 'success');
+    init();
+  } else {
+    errEl.textContent = data.error;
+    errEl.style.display = 'flex';
+  }
+}
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+}
+
+init();
+</script>
+</body>
+</html>

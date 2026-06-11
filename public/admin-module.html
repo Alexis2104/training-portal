@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Portal · Module Editor</title>
+<link rel="stylesheet" href="/css/main.css">
+<style>
+  .form-card { background: #fff; border: 1px solid var(--ox-border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .form-card-title { font-family: 'DM Serif Display', serif; font-size: 17px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--ox-border); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  /* Steps */
+  .step-input-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+  .step-num-badge { width: 26px; height: 26px; border-radius: 50%; background: var(--ox-accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-top: 6px; }
+  /* Quiz */
+  .quiz-q-block { background: var(--ox-bg); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .quiz-q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .quiz-option-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .correct-radio { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+  /* Role assignments */
+  .role-assign-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .role-assign-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--ox-border); border-radius: 8px; background: #fff; cursor: pointer; }
+  .role-assign-item:hover { border-color: var(--ox-accent); }
+  .role-assign-item.selected { border-color: var(--ox-accent); background: var(--ox-adm-bg); }
+  .role-assign-check { width: 16px; height: 16px; border: 1.5px solid var(--ox-border); border-radius: 4px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+  .role-assign-item.selected .role-assign-check { background: var(--ox-accent); border-color: var(--ox-accent); color: #fff; font-size: 10px; }
+  .role-assign-name { font-size: 13px; font-weight: 500; }
+  .role-assign-dept { font-size: 11px; color: var(--ox-muted); }
+  .required-toggle { font-size: 11px; color: var(--ox-accent); margin-top: 2px; cursor: pointer; }
+  /* Bottom bar */
+  .bottom-bar { background: #fff; border-top: 1px solid var(--ox-border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; bottom: 0; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Training<span>Portal</span></div>
+      <div class="brand-sub">Training Platform</div>
+      <div class="admin-badge">✦ Administrator</div>
+    </div>
+    <div class="nav-section">
+      <a href="/admin.html" class="nav-item">← Back to panel</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar" id="sidebarAvatar">--</div>
+        <div><div class="user-name" id="sidebarName">Loading...</div><div class="user-role-label">Administrator</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">New module</div>
+        <div class="breadcrumb">Training Portal · Admin · Modules</div>
+      </div>
+    </div>
+
+    <div class="content" style="padding-bottom:80px;">
+
+      <!-- Basic info -->
+      <div class="form-card">
+        <div class="form-card-title">📋 Module information</div>
+        <div class="form-group">
+          <label class="form-label">Module title</label>
+          <input type="text" id="fTitle" class="form-input" placeholder="e.g. How to Process an Order Cancellation">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Short description</label>
+          <textarea id="fDesc" class="form-input form-textarea" placeholder="Briefly describe what the user will learn..."></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="fDept" class="form-input form-select">
+              <option value="">Select...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estimated duration (minutes)</label>
+            <input type="number" id="fDuration" class="form-input" value="5" min="1" max="60">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">YouTube video URL</label>
+          <!-- Replace VIDEO_ID with your actual YouTube video ID -->
+          <input type="url" id="fVideo" class="form-input" placeholder="https://www.youtube.com/watch?v=VIDEO_ID">
+          <div class="text-muted mt-4">Paste the YouTube video link. Unlisted videos are supported.</div>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <div class="form-card">
+        <div class="form-card-title">🔢 Process steps</div>
+        <div id="stepsContainer"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addStep()">+ Add step</button>
+      </div>
+
+      <!-- Quiz -->
+      <div class="form-card">
+        <div class="form-card-title">✏️ Confirmation quiz</div>
+        <p class="text-muted mb-16">The user must answer at least 70% correctly to complete the module. Mark ⚪ the correct answer for each question.</p>
+        <div id="quizContainer"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addQuestion()">+ Add question</button>
+      </div>
+
+      <!-- Assignment -->
+      <div class="form-card">
+        <div class="form-card-title">👥 Assign to roles</div>
+        <p class="text-muted mb-16">Select which roles must complete this module.</p>
+        <div class="role-assign-grid" id="roleAssignGrid"></div>
+      </div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <a href="/admin.html" class="btn btn-secondary">Cancel</a>
+      <div style="display:flex;gap:8px;">
+        <span id="saveStatus" style="font-size:12px;color:var(--ox-muted);align-self:center;"></span>
+        <button class="btn btn-primary" onclick="saveModule()">💾 Save module</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const moduleId = new URLSearchParams(window.location.search).get('id');
+let allDepts = [];
+let selectedRoles = {};
+let steps = [];
+let questions = [];
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function init() {
+  // Load current admin info for sidebar
+  const me = await fetch('/api/auth/me').then(r => r.json());
+  if (me && !me.error) {
+    document.getElementById('sidebarAvatar').textContent = me.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+    document.getElementById('sidebarName').textContent = me.name;
+  }
+
+  // Load departments and roles
+  allDepts = await fetch('/api/admin/departments').then(r => r.json());
+
+  // Populate department select
+  const sel = document.getElementById('fDept');
+  allDepts.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id; opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+
+  // Render role assignments
+  renderRoleGrid();
+
+  // If editing, load data
+  if (moduleId) {
+    document.getElementById('pageTitle').textContent = 'Edit module';
+    const data = await fetch(`/api/admin/modules/${moduleId}`).then(r => r.json());
+    document.getElementById('fTitle').value = data.title;
+    document.getElementById('fDesc').value = data.description || '';
+    document.getElementById('fDept').value = data.department_id;
+    document.getElementById('fDuration').value = data.duration_minutes;
+    document.getElementById('fVideo').value = data.video_url || '';
+
+    steps = data.steps || [];
+    questions = data.questions || [];
+
+    data.assignments.forEach(a => { selectedRoles[a.role_id] = { required: a.is_required === 1 }; });
+
+    renderSteps(); renderQuiz(); renderRoleGrid();
+  } else {
+    // Defaults
+    addStep(); addQuestion();
+  }
+}
+
+// STEPS
+function renderSteps() {
+  const c = document.getElementById('stepsContainer');
+  c.innerHTML = steps.map((step, i) => `
+    <div class="step-input-row">
+      <div class="step-num-badge">${i + 1}</div>
+      <textarea class="form-input form-textarea" style="min-height:50px;resize:none;flex:1;"
+        onchange="steps[${i}]=this.value" oninput="steps[${i}]=this.value">${step}</textarea>
+      <button class="btn btn-secondary btn-sm" onclick="removeStep(${i})" style="flex-shrink:0;margin-top:4px;">✕</button>
+    </div>
+  `).join('');
+}
+function addStep() { steps.push(''); renderSteps(); }
+function removeStep(i) { steps.splice(i, 1); renderSteps(); }
+
+// QUIZ
+function renderQuiz() {
+  const c = document.getElementById('quizContainer');
+  c.innerHTML = questions.map((q, qi) => `
+    <div class="quiz-q-block">
+      <div class="quiz-q-header">
+        <span style="font-size:13px;font-weight:500;">Question ${qi + 1}</span>
+        <button class="btn btn-secondary btn-sm" onclick="removeQuestion(${qi})">✕ Remove</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Question</label>
+        <input type="text" class="form-input" value="${q.question || ''}"
+          oninput="questions[${qi}].question=this.value" placeholder="When can you cancel an order?">
+      </div>
+      <label class="form-label">Options (mark ⚪ the correct one)</label>
+      ${(q.options || ['','','','']).map((opt, oi) => `
+        <div class="quiz-option-row">
+          <input type="radio" name="correct-${qi}" class="correct-radio" ${q.correct_answer === oi ? 'checked' : ''}
+            onchange="questions[${qi}].correct_answer=${oi}">
+          <input type="text" class="form-input" style="flex:1;" value="${opt || ''}"
+            oninput="questions[${qi}].options[${oi}]=this.value" placeholder="Option ${oi + 1}">
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+function addQuestion() {
+  questions.push({ question: '', options: ['', '', '', ''], correct_answer: 0 });
+  renderQuiz();
+}
+function removeQuestion(i) { questions.splice(i, 1); renderQuiz(); }
+
+// ROLES
+function renderRoleGrid() {
+  const grid = document.getElementById('roleAssignGrid');
+  let html = '';
+  allDepts.forEach(d => {
+    d.roles.forEach(r => {
+      const sel = selectedRoles[r.id];
+      const isRequired = sel && sel.required !== false;
+      html += `
+        <div class="role-assign-item ${sel ? 'selected' : ''}" id="role-item-${r.id}" onclick="toggleRole(${r.id})">
+          <div class="role-assign-check">${sel ? '✓' : ''}</div>
+          <div>
+            <div class="role-assign-name">${r.name}</div>
+            <div class="role-assign-dept">${d.name}</div>
+            ${sel ? `<div class="required-toggle" onclick="event.stopPropagation();toggleRequired(${r.id})" id="req-${r.id}">
+              ${isRequired ? '⬤ Required' : '○ Optional'}</div>` : ''}
+          </div>
+        </div>`;
+    });
+  });
+  grid.innerHTML = html;
+}
+function toggleRole(roleId) {
+  if (selectedRoles[roleId]) { delete selectedRoles[roleId]; }
+  else { selectedRoles[roleId] = { required: true }; }
+  renderRoleGrid();
+}
+function toggleRequired(roleId) {
+  if (selectedRoles[roleId]) selectedRoles[roleId].required = !selectedRoles[roleId].required;
+  renderRoleGrid();
+}
+
+async function saveModule() {
+  const title = document.getElementById('fTitle').value.trim();
+  const dept = document.getElementById('fDept').value;
+  if (!title) { showToast('Title is required', 'error'); return; }
+  if (!dept) { showToast('Select a department', 'error'); return; }
+
+  document.getElementById('saveStatus').textContent = 'Saving...';
+
+  const cleanSteps = steps.filter(s => s.trim());
+  const cleanQs = questions.filter(q => q.question.trim() && q.options.some(o => o.trim()));
+
+  const payload = {
+    title, department_id: dept,
+    description: document.getElementById('fDesc').value.trim(),
+    video_url: document.getElementById('fVideo').value.trim(),
+    duration_minutes: parseInt(document.getElementById('fDuration').value) || 5,
+    steps: cleanSteps,
+    questions: cleanQs,
+    role_assignments: Object.entries(selectedRoles).map(([rid, v]) => ({ role_id: parseInt(rid), is_required: v.required }))
+  };
+
+  const url = moduleId ? `/api/admin/modules/${moduleId}` : '/api/admin/modules';
+  const method = moduleId ? 'PUT' : 'POST';
+
+  const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  const data = await res.json();
+
+  if (data.success) {
+    document.getElementById('saveStatus').textContent = '';
+    showToast('Module saved successfully', 'success');
+    setTimeout(() => window.location.href = '/admin.html', 1200);
+  } else {
+    document.getElementById('saveStatus').textContent = '';
+    showToast('Error saving module', 'error');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
